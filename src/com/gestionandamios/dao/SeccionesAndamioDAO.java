@@ -1,131 +1,125 @@
 package com.gestionandamios.dao;
 
-// Importaciones necesarias para manejar SQL y tu modelo de datos
-import com.gestionandamios.modelo.SeccionAndamio; 
-import com.gestionandamios.conexion.ConexionDB; 
+import com.gestionandamios.conexion.ConexionDB;
+import com.gestionandamios.modelo.SeccionAndamio;
 import java.sql.Connection;
-import java.sql.PreparedStatement; 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- * Clase Data Access Object (DAO) para la entidad SeccionAndamio.
- * Contiene todos los métodos CRUD (Crear, Leer, Actualizar, Eliminar) 
- * para interactuar con la tabla 'secciones_andamio' en la base de datos.
+ * DAO encargado de las operaciones CRUD de la tabla secciones_andamio
  */
 public class SeccionesAndamioDAO {
 
-    /**
-     * Obtiene una conexión a la base de datos. 
-     * Asumimos que tu clase de conexión se llama ConexionDB y tiene un método conectar().
-     */
-    private Connection getConnection() throws SQLException {
-        try {
-            // Cargar el driver JDBC de MySQL
-            Class.forName("com.mysql.cj.jdbc.Driver"); 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(SeccionesAndamioDAO.class.getName()).log(Level.SEVERE, "No se encontró el Driver de MySQL", ex);
-        }
-        // Llamada a tu clase de conexión:
-        return new ConexionDB().conectar(); 
-    }
+    // =========================
+    // INSERTAR SECCIÓN
+    // =========================
+    public boolean insertar(SeccionAndamio s) {
+        String sql = "INSERT INTO secciones_andamio (codigo, tipo, altura_metros, estado, ubicacion, precio) "
+                   + "VALUES (?, ?, ?, ?, ?, ?)";
 
-    // =========================================================================
-    // 1. CREAR (C) - Inserta una nueva sección de andamio en la BD.
-    // =========================================================================
-    public boolean agregarSeccion(SeccionAndamio seccion) {
-        String sql = "INSERT INTO secciones_andamio (codigoSeccion, tipo, alturaMetros, estado, ubicacion, precio) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection con = ConexionDB.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-            // Asigna los valores del objeto a los '?' del SQL
-            ps.setString(1, seccion.getCodigoSeccion());
-            ps.setString(2, seccion.getTipo());
-            ps.setDouble(3, seccion.getAlturaMetros());
-            ps.setString(4, seccion.getEstado());
-            ps.setString(5, seccion.getUbicacion());
-            ps.setDouble(6, seccion.getPrecio());
+            ps.setString(1, s.getCodigo());
+            ps.setString(2, s.getTipo());
+            ps.setDouble(3, s.getAlturaMetros());
+            ps.setString(4, s.getEstado());
+            ps.setString(5, s.getUbicacion());
+            ps.setDouble(6, s.getPrecio());
 
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
 
-        } catch (SQLException e) {
-            Logger.getLogger(SeccionesAndamioDAO.class.getName()).log(Level.SEVERE, "Error SQL al agregar sección", e);
-            return false;
-        }
-    }
-
-    // =========================================================================
-    // 2. LEER (R) - Obtiene todas las secciones de andamio de la BD. (Consultar)
-    // =========================================================================
-    public List<SeccionAndamio> obtenerTodasLasSecciones() {
-        List<SeccionAndamio> secciones = new ArrayList<>();
-        String sql = "SELECT idSeccion, codigoSeccion, tipo, alturaMetros, estado, ubicacion, precio FROM secciones_andamio";
-
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) { 
-
-            while (rs.next()) { 
-                SeccionAndamio seccion = new SeccionAndamio();
-                // Mapea las columnas de la BD al objeto Java
-                seccion.setIdSeccion(rs.getInt("idSeccion"));
-                seccion.setCodigoSeccion(rs.getString("codigoSeccion"));
-                seccion.setTipo(rs.getString("tipo"));
-                seccion.setAlturaMetros(rs.getDouble("alturaMetros"));
-                seccion.setEstado(rs.getString("estado"));
-                seccion.setUbicacion(rs.getString("ubicacion"));
-                seccion.setPrecio(rs.getDouble("precio"));
-                secciones.add(seccion);
+            if (filas > 0) {
+                System.out.println("✔ Sección insertada correctamente");
+                return true;
             }
-        } catch (SQLException e) {
-            Logger.getLogger(SeccionesAndamioDAO.class.getName()).log(Level.SEVERE, "Error SQL al obtener secciones", e);
-        }
-        return secciones;
-    }
-    
-    // =========================================================================
-    // 3. ACTUALIZAR (U) - Modifica una sección existente. (Editar)
-    // =========================================================================
-    public boolean actualizarSeccion(SeccionAndamio seccion) {
-        String sql = "UPDATE secciones_andamio SET codigoSeccion=?, tipo=?, alturaMetros=?, estado=?, ubicacion=?, precio=? WHERE idSeccion=?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // Mapea los nuevos datos
-            ps.setString(1, seccion.getCodigoSeccion());
-            ps.setString(2, seccion.getTipo());
-            ps.setDouble(3, seccion.getAlturaMetros());
-            ps.setString(4, seccion.getEstado());
-            ps.setString(5, seccion.getUbicacion());
-            ps.setDouble(6, seccion.getPrecio());
-            ps.setInt(7, seccion.getIdSeccion()); // ID para el WHERE
+        } catch (SQLException e) {
+            System.err.println("❌ Error real de MYSQL");
+        }
+        return false;
+    }
+
+    // =========================
+    // LISTAR TODAS LAS SECCIONES
+    // =========================
+    public List<SeccionAndamio> listar() {
+
+        List<SeccionAndamio> lista = new ArrayList<>();
+        String sql = "SELECT * FROM secciones_andamio";
+
+        try (Connection con = ConexionDB.getConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                SeccionAndamio s = new SeccionAndamio();
+                s.setIdSeccion(rs.getInt("id_seccion"));
+                s.setCodigo(rs.getString("codigo"));
+                s.setTipo(rs.getString("tipo"));
+                s.setAlturaMetros(rs.getDouble("altura_metros"));
+                s.setEstado(rs.getString("estado"));
+                s.setUbicacion(rs.getString("ubicacion"));
+                s.setPrecio(rs.getDouble("precio"));
+
+                lista.add(s);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al listar secciones de andamio");
+        }
+
+        return lista;
+    }
+
+    // =========================
+    // ACTUALIZAR SECCIÓN
+    // =========================
+    public boolean actualizar(SeccionAndamio s) {
+
+        String sql = "UPDATE secciones_andamio "
+                   + "SET codigo = ?, tipo = ?, altura_metros = ?, estado = ?, ubicacion = ?, precio = ? "
+                   + "WHERE id_seccion = ?";
+
+        try (Connection con = ConexionDB.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, s.getCodigo());
+            ps.setString(2, s.getTipo());
+            ps.setDouble(3, s.getAlturaMetros());
+            ps.setString(4, s.getEstado());
+            ps.setString(5, s.getUbicacion());
+            ps.setDouble(6, s.getPrecio());
+            ps.setInt(7, s.getIdSeccion());
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            Logger.getLogger(SeccionesAndamioDAO.class.getName()).log(Level.SEVERE, "Error SQL al actualizar sección", e);
+            System.err.println("❌ Error al actualizar sección de andamio");
             return false;
         }
     }
 
-    // =========================================================================
-    // 4. ELIMINAR (D) - Elimina una sección por su ID. (Eliminar)
-    // =========================================================================
-    public boolean eliminarSeccion(int idSeccion) {
-        String sql = "DELETE FROM secciones_andamio WHERE idSeccion = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+    // =========================
+    // ELIMINAR SECCIÓN
+    // =========================
+    public boolean eliminar(int idSeccion) {
+
+        String sql = "DELETE FROM secciones_andamio WHERE id_seccion = ?";
+
+        try (Connection con = ConexionDB.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, idSeccion);
-
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            Logger.getLogger(SeccionesAndamioDAO.class.getName()).log(Level.SEVERE, "Error SQL al eliminar sección", e);
+            System.err.println("❌ Error al eliminar sección de andamio");
             return false;
         }
     }

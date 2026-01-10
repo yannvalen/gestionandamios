@@ -1,31 +1,16 @@
 package com.gestionandamios.modelo;
 
-/**
- * Clase de Modelo (POJO) para representar una Seccion de Andamio.
- * Contiene los atributos que corresponden a las columnas de la tabla 
- * 'secciones_andamio' en la base de datos.
- */
 public class SeccionAndamio {
-    
-    // Atributos que mapean a las columnas de la base de datos
-    private int idSeccion; 
-    private String codigoSeccion;
-    private String tipo; 
-    private double alturaMetros; 
-    private String estado;      // Ejemplo: "Disponible", "Alquilada", "Mantenimiento"
+
+    private int idSeccion;
+    private String codigo;          
+    private String tipo;
+    private double alturaMetros;
+    private String estado;
     private String ubicacion;
     private double precio;
 
-    // -------------------------------------------------------------------
-    // 1. Constructor Vacío (necesario para la deserialización del DAO)
-    // -------------------------------------------------------------------
-    public SeccionAndamio() {
-        // Constructor por defecto
-    }
-    
-    // -------------------------------------------------------------------
-    // 2. Getters y Setters (para acceder y modificar los atributos)
-    // -------------------------------------------------------------------
+    public SeccionAndamio() {}
 
     public int getIdSeccion() {
         return idSeccion;
@@ -35,12 +20,12 @@ public class SeccionAndamio {
         this.idSeccion = idSeccion;
     }
 
-    public String getCodigoSeccion() {
-        return codigoSeccion;
+    public String getCodigo() {
+        return codigo;
     }
 
-    public void setCodigoSeccion(String codigoSeccion) {
-        this.codigoSeccion = codigoSeccion;
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public String getTipo() {
@@ -81,13 +66,5 @@ public class SeccionAndamio {
 
     public void setPrecio(double precio) {
         this.precio = precio;
-    }
-    
-    /**
-     * Opcional: Sobreescritura del método toString() para una mejor impresión en consola.
-     */
-    @Override
-    public String toString() {
-        return "SeccionAndamio{" + "idSeccion=" + idSeccion + ", codigoSeccion=" + codigoSeccion + ", tipo=" + tipo + ", alturaMetros=" + alturaMetros + ", estado=" + estado + ", ubicacion=" + ubicacion + ", precio=" + precio + '}';
     }
 }
